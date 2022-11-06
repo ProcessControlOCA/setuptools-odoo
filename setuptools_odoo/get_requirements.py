@@ -83,11 +83,11 @@ def _get_requirements(
     return sorted(requirements, key=lambda s: s.lower())
 
 
-def _render(requirements, header, fp):
+def _render(requirements, header, fp, newline):
     if header:
-        print(header, file=fp)
+        print(header, file=fp, end=newline)
     for requirement in requirements:
-        print(requirement, file=fp)
+        print(requirement, file=fp, end=newline)
 
 
 def main(args=None):
@@ -122,16 +122,27 @@ def main(args=None):
             "python external dependencies (default: false)"
         ),
     )
+    parser.add_argument(
+        "--line_ending",
+        default="lf",
+        help="line ending, values: lf, cr, crlf (default: lf)",
+    )
     args = parser.parse_args(args)
     requirements = _get_requirements(
         args.addons_dir, include_addons=args.include_addons
     )
+    if args.line_ending == "cr":
+        newline = '\r'
+    elif args.line_ending == "crlf":
+        newline = '\r\n'
+    else:
+        newline = '\n'
     if args.output == "-":
-        _render(requirements, args.header, sys.stdout)
+        _render(requirements, args.header, sys.stdout, newline)
     else:
         if os.path.exists(args.output) or requirements:
-            with open(args.output, "w") as fp:
-                _render(requirements, args.header, fp)
+            with open(args.output, "w", newline='') as fp:
+                _render(requirements, args.header, fp, newline)
 
 
 if __name__ == "__main__":
